@@ -41,7 +41,7 @@ def save_hdfs(data, crypto, currency, year):
     try:
         if data:
             rdd = spark.sparkContext.parallelize(data)
-            print("----------------------------- RDD créé avec {} enregistrements -----------------------------".format(rdd.count()))
+            print("----------------------------- 2 : RDD créé avec {} enregistrements -----------------------------".format(rdd.count()))
 
             columns = [
                 "Open Time", "Open", "High", "Low", "Close", "Volume",
@@ -55,13 +55,13 @@ def save_hdfs(data, crypto, currency, year):
 
             # df.show(5, truncate=False)
 
-            file_name = "{}-{}_{}.csv".format(crypto, currency, year)
-            output_path = hdfs_path + file_name
+            folder = "{}-{}_{}".format(crypto, currency, year)
+            output_path = hdfs_path + folder
 
-            print("----------------------------- Chemin de sortie HDFS : {} -----------------------------".format(output_path))
+            print("----------------------------- 3: Chemin de sortie HDFS : {} -----------------------------".format(output_path))
 
 
-            print("----------------------------- Sauvegarde du DataFrame Spark en CSV dans HDFS -----------------------------")
+            print("----------------------------- 4 : Sauvegarde du DataFrame Spark en CSV dans HDFS -----------------------------")
             df.write.csv(output_path, header=True, mode='overwrite')
             print("----------------------------- Données {}-{} pour l'année {} sauvegardées dans {} -----------------------------".format(crypto, currency, year, output_path))
         else:
@@ -80,11 +80,11 @@ def get_save_data(crypto, currency, start_year, end_year):
         start_time = date_to_millis(start_date)
         end_time = date_to_millis(end_date)
 
-        print("----------------------------- Récupération de {}/{} pour la période {} - {} -----------------------------".format(crypto, currency, start_date, end_date))
+        print("----------------------------- 1 : Récupération de {}/{} pour la période {} - {} -----------------------------".format(crypto, currency, start_date, end_date))
 
         data = fetch_data(crypto, currency, start_time, end_time)
         save_hdfs(data, crypto, currency, year)
 
-get_save_data(crypto, currency, 2022, 2024) 
+get_save_data(crypto, currency, 2020, 2024) 
 
 spark.stop()
