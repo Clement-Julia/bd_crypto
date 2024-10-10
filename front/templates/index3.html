@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Dashboard</title>
+    <!-- Include ECharts via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Include jQuery for loading the data -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #chart {
+            height: calc(100vh - 100px); /* Adjust according to the height of the header or other content */
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h2>Crypto Price Prediction</h2>
+
+    <!-- Crypto selector -->
+    <label for="crypto-select">Choose a cryptocurrency:</label>
+    <select id="crypto-select" class="form-select">
+        <option value="">-- Select --</option>
+        <option value="BTC">Bitcoin (BTC)</option>
+        <option value="ETH">Ethereum (ETH)</option>
+        <option value="USDT">Tether (USDT)</option>
+    </select>
+
+    <div id="chart" class="mt-4"></div>
+    <script type="text/javascript">
+        var myChart = echarts.init(document.getElementById('chart'));
+  
+        var option = {
+          title: {
+            text: 'ECharts Getting Started Example'
+          },
+          tooltip: {},
+          legend: {
+            data: ['sales']
+          },
+          xAxis: {
+            data: ['Shirts', 'Cardigans', 'Chiffons', 'Pants', 'Heels', 'Socks']
+          },
+          yAxis: {},
+          series: [
+            {
+              name: 'sales',
+              type: 'bar',
+              data: [5, 20, 36, 10, 10, 20]
+            }
+          ]
+        };
+  
+        myChart.setOption(option);
+      </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+</body>
+</html>

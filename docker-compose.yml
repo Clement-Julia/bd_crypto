@@ -137,6 +137,20 @@ services:
       - kafka
       - zookeeper
 
+  front:
+    build: ./front
+    container_name: front
+    restart: always
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./front:/app
+    environment:
+      - FLASK_ENV=development
+    depends_on:
+      - kafka
+      - zookeeper
+
 volumes:
   hadoop_namenode:
   hadoop_datanode:
