@@ -55,11 +55,12 @@ def get_csv():
     
     hdfs_directory = "/data/{}-EUR_{}/".format(symbol, year)
 
-    namenode_url = "http://127.0.0.1:9870/webhdfs/v1{}?op=LISTSTATUS".format(hdfs_directory)
+    namenode_url = "http://namenode:9870/webhdfs/v1{}?op=LISTSTATUS".format(hdfs_directory)
     try:
         response = requests.get(namenode_url)
+        print(response)
         if response.status_code != 200:
-            return jsonify({"error": "Unable to list files in HDFS directory, status code: {}".format(response.status_code)}), 400
+            return jsonify({"error": "Unable to list files in HDFS directory, status code: {}".format(response.status_code),"data":response.json()}), 400
         
         file_list = response.json()['FileStatuses']['FileStatus']
         
@@ -68,7 +69,7 @@ def get_csv():
         for file_info in file_list:
             file_name = file_info['pathSuffix']
             if file_name.endswith(".csv"): 
-                file_url = "http://127.0.0.1:9870/webhdfs/v1{}{}?op=OPEN".format(hdfs_directory, file_name)
+                file_url = "http://namenode:9870/webhdfs/v1{}{}?op=OPEN".format(hdfs_directory, file_name)
                 file_response = requests.get(file_url)
                 if file_response.status_code == 200:
                     csv_buffer.write(file_response.text) 
