@@ -1,2 +1,3 @@
 flask
 confluent-kafka
+kafka-python>=2.0.0
