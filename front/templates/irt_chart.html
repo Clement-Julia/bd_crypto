@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crypto Prices</title>
+    <title>Valeur en temps réel</title>
     <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -19,7 +19,10 @@
 </head>
 <body>
     <div class="container">
-        <h1 class="text-center mt-4" id="crypto-title">Loading...</h1>
+        <a href="http://localhost:5000/" class="btn btn-outline-primary mt-3">
+            <i class="fas fa-arrow-left"></i> Retour
+        </a>
+        <h1 class="text-center mt-4" id="crypto-title">Chargement...</h1>
         <div id="chart"></div>
         <div class="price-info">
             <div class="price-difference" id="price-difference"></div>
@@ -29,14 +32,14 @@
 
     <script type="text/javascript">
         const symbol = window.location.pathname.split('/').pop() + 'EUR';
-        $('#crypto-title').text(`Live ${symbol.replace('EUR', '')}/EUR Price`);
+        $('#crypto-title').text(`Prix actuel du ${symbol.replace('EUR', '')}/EUR`);
         
         var myChart = echarts.init(document.getElementById('chart'));
         var option = {
-            title: { text: `${symbol.replace('EUR', '')}/EUR Price Over Time`, left: 'center' },
+            title: { text: `Prix dans le temps du ${symbol.replace('EUR', '')}/EUR`, left: 'center' },
             tooltip: { trigger: 'axis' },
             xAxis: { type: 'time', boundaryGap: false },
-            yAxis: { type: 'value', scale: true, name: 'Price (EUR)' },
+            yAxis: { type: 'value', scale: true, name: 'Prix (EUR)' },
             series: [{ name: `${symbol.replace('EUR', '')}/EUR`, type: 'line', data: [] }]
         };
         myChart.setOption(option);
