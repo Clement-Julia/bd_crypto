@@ -57,7 +57,7 @@ def produce_data():
                 producer.send(KAFKA_TOPIC, value=data)
         else:
             print("Aucune cryptomonnaie sélectionnée. En attente de sélection...")
-        time.sleep(5)
+        time.sleep(2.5)
 
 if __name__ == "__main__":
     # Lancer la consommation des changements de symbole dans un thread
