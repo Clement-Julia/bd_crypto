@@ -58,8 +58,9 @@ def get_csv():
     namenode_url = "http://namenode:9870/webhdfs/v1{}?op=LISTSTATUS".format(hdfs_directory)
     try:
         response = requests.get(namenode_url)
+        print(response)
         if response.status_code != 200:
-            return jsonify({"error": "Unable to list files in HDFS directory, status code: {}".format(response.status_code)}), 400
+            return jsonify({"error": "Unable to list files in HDFS directory, status code: {}".format(response.status_code),"data":response.json()}), 400
         
         file_list = response.json()['FileStatuses']['FileStatus']
         
