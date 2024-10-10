@@ -14,7 +14,7 @@ producer = KafkaProducer(
 symbol = 'BTCEUR'
 base_url = f'https://api.binance.com/api/v3/ticker/price?symbol={symbol}'
 
-def get_crypto_price():
+def get_crypto_prices():
     try:
         response = requests.get(base_url)
         if response.status_code == 200:
@@ -27,20 +27,20 @@ def get_crypto_price():
                 'timestamp': timestamp
             }
         else:
-            print(f"[ERROR] Erreur lors de la récupération des données : {response.text}")
+            print(f"----------------------------- Erreur lors de la récupération des données : {response.text} -----------------------------")
             return None
     except Exception as e:
-        print(f"[ERROR] Exception lors de la récupération des données : {str(e)}")
+        print(f"Exception lors de la récupération des données : {str(e)}")
         return None
 
 def produce_data():
-    print(f"[INFO] Démarrage de la récupération des données pour {symbol}...")
+    print(f"----------------------------- Démarrage de la récupération des données pour {symbol} -----------------------------")
     while True:
-        data = get_crypto_price()
+        data = get_crypto_prices()
         if data:
-            print(f"[INFO] Envoi des données à Kafka : {data}")
+            print(f"Envoi des données à Kafka : {data}")
             producer.send(KAFKA_TOPIC, value=data)
-        time.sleep(30) 
+        time.sleep(5) 
 
 if __name__ == "__main__":
     produce_data()

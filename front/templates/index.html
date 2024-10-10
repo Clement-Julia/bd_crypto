@@ -1,47 +1,164 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crypto Prices</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-    <h1>Live BTC/EUR Price</h1>
-    <canvas id="priceChart" width="400" height="200"></canvas>
-    <script>
-        const ctx = document.getElementById('priceChart').getContext('2d');
-        const priceChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'BTC/EUR Price',
-                    data: [],
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    x: { type: 'time', time: { unit: 'second' } },
-                    y: { beginAtZero: false }
-                }
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Crypto Prices</title>
+        <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+        <style>
+            body, html {
+                height: 100%;
+                margin: 0;
+                padding: 0;
             }
-        });
+    
+            #chart {
+                height: 400px;
+                width: 100%;
+                margin-top: 20px;
+            }
+    
+            #data-display {
+                max-height: 300px;
+                overflow-y: auto;
+                background: #f8f9fa;
+                padding: 10px;
+                border: 1px solid #ddd;
+                margin-top: 20px;
+            }
+    
+            .price-info {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 20px;
+                font-size: 1.5rem;
+                margin-top: 20px;
+            }
+    
+            .price-info .price-difference {
+                font-size: 2rem;
+            }
+    
+            .price-info .current-price {
+                font-size: 2.5rem;
+                font-weight: bold;
+            }
+        </style>
+    </head>
+<body>
+    <div class="container">
+        <h1 class="text-center mt-4">Live BTC/EUR Price</h1>
 
+        <!-- Section for displaying the chart -->
+        <div id="chart"></div>
+
+        <!-- Display the last and current price -->
+        <div class="price-info">
+            <div class="price-difference" id="price-difference">
+                <!-- Arrow will be inserted here -->
+            </div>
+            <div class="current-price" id="current-price">-- EUR</div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        var myChart = echarts.init(document.getElementById('chart'));
+
+        var option = {
+            title: {
+                text: 'BTC/EUR Price Over Time',
+                left: 'center'
+            },
+            tooltip: {
+                trigger: 'axis',
+                formatter: function (params) {
+                    var date = new Date(params[0].value[0]);
+                    var price = params[0].value[1];
+                    return date.toLocaleString() + '<br/>Price: ' + price.toFixed(2);
+                }
+            },
+            xAxis: {
+                type: 'time',
+                boundaryGap: false
+            },
+            yAxis: {
+                type: 'value',
+                scale: true,
+                name: 'Price (EUR)'
+            },
+            series: [{
+                name: 'BTC/EUR',
+                type: 'line',
+                data: []
+            }]
+        };
+
+        myChart.setOption(option);
+
+        let previousPrice = null;
+
+        // Function to fetch data and update the chart
         async function fetchData() {
-            const response = await fetch('/crypto_price');
-            const data = await response.json();
-            const timestamp = new Date(data.timestamp * 1000);
-            const price = data.price;
-
-            priceChart.data.labels.push(timestamp);
-            priceChart.data.datasets[0].data.push(price);
-            priceChart.update();
+            try {
+                const response = await fetch('/crypto_prices');
+        
+                // Vérifier si la réponse est vide ou le statut est 204 (No Content)
+                if (response.status === 204) {
+                    console.warn("No content received from server.");
+                    return;
+                }
+        
+                // Tenter de convertir la réponse en JSON
+                const data = await response.json();
+        
+                // Vérifier si les données sont valides
+                if (data && data.timestamp && data.price) {
+                    const timestamp = new Date(data.timestamp * 1000).toLocaleString();
+                    const price = data.price;
+        
+                    // Update the ECharts data
+                    myChart.setOption({
+                        series: [{
+                            data: [...myChart.getOption().series[0].data, [new Date(data.timestamp * 1000), price]]
+                        }]
+                    });
+        
+                    // Update the price display
+                    const currentPriceElement = document.getElementById('current-price');
+                    const priceDifferenceElement = document.getElementById('price-difference');
+        
+                    // Update the current price
+                    currentPriceElement.textContent = `${formatPrice(price.toFixed(2))} EUR`;
+        
+                    // Update the price difference and icon
+                    if (previousPrice !== null) {
+                        const difference = price - previousPrice;
+                        priceDifferenceElement.innerHTML = difference > 0 
+                        ? `<i class="fas fa-arrow-up text-success"></i> ${formatPrice(difference.toFixed(2))} EUR`
+                        : `<i class="fas fa-arrow-down text-danger"></i> ${formatPrice(difference.toFixed(2))} EUR`;
+                }
+        
+                    // Store the current price as the previous for the next update
+                    previousPrice = price;
+                } else {
+                    console.warn("Invalid data received:", data);
+                }
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
         }
 
-        setInterval(fetchData, 30000);
+        function formatPrice(price) {
+            return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+        }
+        
+        // Fetch data every 5 seconds
+        setInterval(fetchData, 5000);
     </script>
 </body>
 </html>
