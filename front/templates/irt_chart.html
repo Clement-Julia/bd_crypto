@@ -40,12 +40,12 @@
             series: [{ name: `${symbol.replace('EUR', '')}/EUR`, type: 'line', data: [] }]
         };
         myChart.setOption(option);
-
+    
         let previousPrice = null;
-
+    
         async function fetchData() {
             try {
-                const response = await fetch(`/crypto_prices`);
+                const response = await fetch(`/crypto_prices`, { timeout: 8000 });
                 
                 if (response.status === 204) {
                     console.warn("No content received from server.");
@@ -68,6 +68,19 @@
                     // Update the displayed price
                     const currentPriceElement = document.getElementById('current-price');
                     currentPriceElement.textContent = `${formatPrice(price.toFixed(2))} EUR`;
+        
+                    // Calculate and display the price difference
+                    const priceDifferenceElement = document.getElementById('price-difference');
+                    if (previousPrice !== null) {
+                        const difference = price - previousPrice;
+                        priceDifferenceElement.innerHTML = difference > 0 
+                            ? `<i class="fas fa-arrow-up text-success"></i> ${formatPrice(difference.toFixed(2))} EUR`
+                            : difference < 0
+                            ? `<i class="fas fa-arrow-down text-danger"></i> ${formatPrice(difference.toFixed(2))} EUR`
+                            : `<i class="fas fa-equals text-primary"></i> ${formatPrice(difference.toFixed(2))} EUR`;
+                    }
+        
+                    previousPrice = price;
                 } else {
                     console.warn("Invalid data received:", data);
                 }
@@ -76,17 +89,14 @@
             }
         }
         
-        function formatPrice(price) {
-            return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-        }
-        
-        // Fetch data every 5 seconds
-        setInterval(fetchData, 5000);                       
-
-        function formatPrice(price) {
-            return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-        }
         setInterval(fetchData, 5000);
+        
+        
+        function formatPrice(price) {
+            return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+        }
+                        
     </script>
+    
 </body>
 </html>

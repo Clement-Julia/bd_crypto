@@ -10,8 +10,6 @@ crypto = "BTC"
 currency = "EUR"
 hdfs_path = "hdfs://namenode:9000/data/"
 
-years = range(2020, 2021)
-
 def read_csv_from_hdfs(crypto, currency, year):
 
     file_path = "{}{}-{}_{}".format(hdfs_path, crypto, currency, year)
