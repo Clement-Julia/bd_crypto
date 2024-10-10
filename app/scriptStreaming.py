@@ -1,7 +1,7 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, from_json
-from pyspark.sql.types import StructType, StructField, StringType, IntegerType
-from pyhive import hive  # type: ignore
+from pyspark.sql.functions import col, from_json, udf, explode
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType, ArrayType, StringType
+import json
 
 spark = SparkSession.builder \
     .appName("KafkaSparkConsumer") \
@@ -12,25 +12,25 @@ spark = SparkSession.builder \
 
 spark.sparkContext.setLogLevel("ERROR")
 
-hive_host = 'hive-server'
-hive_port = 10000
-hive_database = 'test'
-
-conn = hive.Connection(
-    host=hive_host,
-    port=hive_port,
-    database=hive_database
-)
-
-cursor = conn.cursor()
-
-user_schema = StructType([
-    StructField("id", StringType(), True),
-    StructField("nom", StringType(), True),
-    StructField("prenom", StringType(), True),
-    StructField("age", IntegerType(), True),
-    StructField("email", StringType(), True)
-])
+def convertir_data(valeur):
+    if isinstance(valeur, int) or isinstance(valeur, float):
+        return valeur 
+    
+    if isinstance(valeur, str) and valeur.isdigit():
+        return int(valeur)
+    
+    try:
+        return float(valeur)
+    except ValueError:
+        return valeur 
+    
+# itère sur le tableau 
+def convertir_donnee_recu(ligne_json):
+    try:
+        liste_donnees = json.loads(ligne_json)
+        return [[str(convertir_data(item)) for item in sous_liste] for sous_liste in liste_donnees]
+    except json.JSONDecodeError:  
+        return []
 
 df = spark \
     .readStream \
@@ -40,14 +40,22 @@ df = spark \
     .load()
 
 df = df.selectExpr("CAST(value AS STRING)")
-df = df.select(from_json(col("value"), user_schema).alias("data")).select("data.*")
 
-query = df \
-    .writeStream \
+convertir_udf = udf(convertir_donnee_recu, ArrayType(ArrayType(StringType())))
+df_converti = df.withColumn("valeurs_converties", convertir_udf(col("value")))
+df_exploded = df_converti.select(explode(col("valeurs_converties")).alias("valeurs_individuelles"))
+
+df_final = df_exploded.select(
+    col("valeurs_individuelles")[0].alias("Timestamp"),
+    col("valeurs_individuelles")[1].alias("Open"),
+    col("valeurs_individuelles")[2].alias("High"),
+    col("valeurs_individuelles")[3].alias("Low"),
+    col("valeurs_individuelles")[4].alias("Close"),
+    col("valeurs_individuelles")[5].alias("Volume")
+)
+query = df_final.writeStream \
     .outputMode("append") \
-    .format("parquet") \
-    .option("checkpointLocation", "/tmp/kafka/checkpoint") \
-    .option("path", "/tmp/kafka/output") \
+    .format("console") \
     .start()
 
 query.awaitTermination()
