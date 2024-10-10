@@ -24,14 +24,14 @@ def get_prediction():
         return jsonify({"message": "No input data provided"}), 400
 
     try:
-        data = json_data
+        data = json_data['crypto']
         current_time = datetime.datetime.now()
         start_time = current_time - datetime.timedelta(days= 1000)
         current_timestamp_unix = int(current_time.timestamp() * 1000)
         start_timestamp_unix = int(start_time.timestamp() * 1000) 
 
         params = {
-            "symbol": "BTCEUR",
+            "symbol": data+"EUR",
             "interval": "1d",
             "startTime": start_timestamp_unix,
             "endTime": current_timestamp_unix,
@@ -44,7 +44,7 @@ def get_prediction():
     result = response.json()
     producer.send('topic1', result)
     producer.flush()
-    return jsonify({"message": "User data received and sent to Kafka","data-length": len(result),"data": result}), 200
+    return jsonify({"message": "User data received and sent to Kafka","test": data,"data": result}), 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5550)
